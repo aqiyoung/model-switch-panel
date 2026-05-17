@@ -2,287 +2,334 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>模型切换</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型切换面板</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column}
-.header{background:#fff;border-bottom:1px solid #e5e5ea;position:sticky;top:0;z-index:10}
-.header-inner{display:flex;justify-content:space-between;align-items:center;padding:16px 16px;max-width:720px;margin:0 auto}
-.header h1{font-size:17px;font-weight:600;color:#1d1d1f}
-.header .status{font-size:12px;color:#86868b}
-.container{padding:16px;max-width:720px;margin:0 auto;flex:1;width:100%}
-.section{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
-.section-title{font-size:12px;font-weight:600;color:#86868b;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em}
-.current-model{font-size:17px;font-weight:600;padding:6px 0;word-break:break-word;color:#1d1d1f}
-.actions-inline{display:flex;gap:8px;margin-top:14px}
-.actions-inline .btn{padding:9px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex:0 1 auto}
-.actions-inline .btn:active{transform:scale(0.97)}
-@media(max-width:640px){.container{padding:12px}}
-.footer{text-align:center;padding:8px 16px;font-size:11px;color:#999;line-height:1.6;max-width:720px;margin:0 auto}
-.footer-sep{margin:0 6px}
-.provider{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 12px 18px;background:#fff;border-radius:10px;margin-bottom:6px;border:1px solid #e5e5ea;cursor:pointer;transition:all .15s;position:relative;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
-.provider::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;background:#ddd;transition:background .2s}
-.provider.active{background:#fff5f0;border-color:#ff6b35}
-.provider.active::before{background:#ff6b35}
-.provider-name{font-size:14px;font-weight:500}
-.provider-latency{font-size:11px;color:#86868b;margin-top:2px}
-.provider-right{display:flex;align-items:center;gap:10px}
-.status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.status-badge.ok{background:#e8f8ee;color:#1a8a4a}
-.status-badge.error{background:#fde8e8;color:#d32f2f}
-.status-badge.timeout{background:#fef3e0;color:#e67e00}
-.status-badge.no_key{background:#f2f2f5;color:#86868b}
-.model-group{margin-bottom:10px}
-.model-group-title{font-size:13px;font-weight:600;padding:8px 0;color:#555;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
-.model-group-title::after{content:'▼';font-size:9px;color:#aaa;transition:transform .2s}
-.model-group-title.collapsed::after{transform:rotate(-90deg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1d1d1f;min-height:100vh;display:flex;flex-direction:column}
+
+/* ===== 顶部导航 ===== */
+.header{background:#fff;border-bottom:1px solid #e5e5ea;padding:0 24px;position:sticky;top:0;z-index:10}
+.header-inner{display:flex;justify-content:space-between;align-items:center;height:56px;max-width:1200px;margin:0 auto}
+.header h1{font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px}
+.header-right{display:flex;align-items:center;gap:12px}
+.header .status{font-size:12px;color:#86868b;padding:4px 10px;background:#f5f5f7;border-radius:20px}
+.pw-btn{font-size:12px;padding:4px 12px;border-radius:6px;border:none;background:#ff6b35;color:#fff;cursor:pointer;font-weight:600}
+
+/* ===== 左右布局 ===== */
+.layout{display:flex;flex:1;max-width:1200px;margin:0 auto;width:100%;padding:20px;gap:20px}
+
+/* ===== 左侧菜单 ===== */
+.sidebar{width:280px;flex-shrink:0}
+.sidebar-section{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.sidebar-title{font-size:11px;font-weight:600;color:#86868b;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* 当前模型卡片 */
+.current-model-card{text-align:center;padding:8px 0}
+.current-model-label{font-size:11px;color:#86868b;margin-bottom:6px}
+.current-model-name{font-size:16px;font-weight:600;color:#1d1d1f;word-break:break-word}
+
+/* 提供商列表 */
+.provider-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;margin-bottom:4px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.provider-item:hover{background:#f5f5f7}
+.provider-item.active{background:#fff5f0;border-color:#ff6b35}
+.provider-info{display:flex;align-items:center;gap:10px}
+.provider-dot{width:8px;height:8px;border-radius:50%;background:#ddd;transition:background .2s}
+.provider-item.active .provider-dot,.provider-item:has(.ok) .provider-dot{background:#22c55e}
+.provider-item:has(.error) .provider-dot{background:#ef4444}
+.provider-item:has(.timeout) .provider-dot{background:#f59e0b}
+.provider-name{font-size:13px;font-weight:500}
+.provider-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.provider-badge.ok{background:#e8f8ee;color:#1a8a4a}
+.provider-badge.error{background:#fde8e8;color:#d32f2f}
+.provider-badge.timeout{background:#fef3e0;color:#e67e00}
+
+/* ===== 右侧内容 ===== */
+.main{flex:1;min-width:0}
+.main-section{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.main-title{font-size:14px;font-weight:600;color:#1d1d1f;margin-bottom:16px;display:flex;align-items:center;justify-content:between}
+
+/* 模型列表 */
+.model-provider-group{margin-bottom:16px}
+.model-provider-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fa;border-radius:8px;margin-bottom:6px;cursor:pointer;user-select:none}
+.model-provider-header:hover{background:#f0f2f5}
+.model-provider-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.model-provider-count{font-size:11px;color:#86868b;background:#e5e5ea;padding:2px 8px;border-radius:10px}
+.model-provider-arrow{font-size:10px;color:#aaa;transition:transform .2s}
+.model-provider-header.collapsed .model-provider-arrow{transform:rotate(-90deg)}
 .model-list{display:none}
 .model-list.show{display:block}
-.model-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f5f5f7;border-radius:8px;margin-bottom:3px;font-size:13px;cursor:pointer;transition:all .15s;border:1px solid transparent}
-.model-item:hover{background:#eeeef0}
+.model-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8f9fa;border-radius:6px;margin-bottom:3px;font-size:13px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.model-item:hover{background:#f0f2f5}
 .model-item.selected{border-color:#ff6b35;background:#fff5f0}
-.model-item .check{display:none;color:#ff6b35;margin-left:8px;font-weight:700}
-.model-item.selected .check{display:inline}
-.model-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
+.model-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.model-item-check{display:none;color:#ff6b35;margin-left:8px;font-weight:700;font-size:14px}
+.model-item.selected .model-item-check{display:inline}
+
+/* 操作按钮 */
+.actions{display:flex;gap:10px;margin-top:20px}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center}
 .btn:active{transform:scale(0.97)}
 .btn-primary{background:#ff6b35;color:#fff}
 .btn-primary:hover{background:#e85a26}
 .btn-primary:disabled{opacity:0.4;cursor:not-allowed}
-.btn-secondary{background:#f2f2f5;color:#1d1d1f}
+.btn-secondary{background:#f0f2f5;color:#1d1d1f}
 .btn-secondary:hover{background:#e5e5ea}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:100;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+.btn-block{width:100%}
+
+/* ===== 底部 ===== */
+.footer{text-align:center;padding:12px 16px;font-size:11px;color:#999;max-width:1200px;margin:0 auto;width:100%}
+.footer-sep{margin:0 6px}
+
+/* ===== 提示 ===== */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1d1d1f;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:100;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
 .toast.show{display:block;animation:toastIn .2s}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.login-overlay{position:fixed;inset:0;background:#f5f5f7;z-index:1000;display:flex;align-items:center;justify-content:center}
+
+/* ===== 登录弹窗 ===== */
+.login-overlay{position:fixed;inset:0;background:#f0f2f5;z-index:1000;display:flex;align-items:center;justify-content:center}
 .login-box{background:#fff;border-radius:16px;padding:32px;width:320px;box-shadow:0 4px 24px rgba(0,0,0,0.1);text-align:center}
 .login-box h2{font-size:20px;font-weight:700;margin-bottom:6px}
 .login-box p{font-size:13px;color:#86868b;margin-bottom:20px}
 .login-box input{width:100%;padding:12px 14px;border:1px solid #e5e5ea;border-radius:10px;font-size:15px;outline:none;transition:border .2s;text-align:center}
 .login-box input:focus{border-color:#ff6b35}
-.login-box .btn{margin-top:16px;width:100%;padding:12px;border-radius:10px;border:none;background:#ff6b35;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s}
-.login-box .btn:active{transform:scale(0.97)}
+.login-box .btn{margin-top:16px;width:100%;padding:12px;border-radius:10px;border:none;background:#ff6b35;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
 .login-box .error{color:#d32f2f;font-size:13px;margin-top:10px;display:none}
-.pw-btn{font-size:12px;padding:4px 12px;border-radius:6px;border:none;background:#ff6b35;color:#fff;cursor:pointer;margin-left:10px;font-weight:600;transition:all .15s}
-.pw-btn:hover{background:#e85a2a;transform:scale(0.97)}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:500;display:none;align-items:center;justify-content:center}
-.modal-box{background:#fff;border-radius:16px;padding:28px;width:320px;box-shadow:0 4px 24px rgba(0,0,0,0.12)}
-.modal-box h3{font-size:17px;font-weight:600;margin-bottom:16px}
-.modal-box input{width:100%;padding:10px 12px;border:1px solid #e5e5ea;border-radius:8px;font-size:14px;outline:none;margin-bottom:10px;transition:border .2s}
-.modal-box input:focus{border-color:#ff6b35}
-.modal-actions{display:flex;gap:8px;margin-top:14px}
-.modal-actions .btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
-.modal-actions .btn:active{transform:scale(0.97)}
-@media(min-width:768px){
-  .model-item-name{white-space:normal}
+
+/* ===== 响应式 ===== */
+@media(max-width:900px){
+  .layout{flex-direction:column;padding:12px;gap:12px}
+  .sidebar{width:100%}
+  .sidebar-section{padding:12px}
+}
+@media(max-width:640px){
+  .header{padding:0 12px}
+  .layout{padding:8px;gap:8px}
+  .main-section{padding:14px}
 }
 </style>
 </head>
 <body>
+
+<!-- 登录弹窗 -->
 <div class="login-overlay" id="loginOverlay">
-    <div class="login-box">
-        <h2>🔐 模型控制台</h2>
-        <p>请输入访问口令</p>
-        <input type="password" id="pwInput" placeholder="口令" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off">
-        <div class="btn" onclick="doLogin()">进入</div>
-        <div class="error" id="loginError">密码错误</div>
-    </div>
+  <div class="login-box">
+    <h2>🔐 模型控制台</h2>
+    <p>请输入访问口令</p>
+    <input type="password" id="pwInput" placeholder="口令" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off">
+    <div class="btn" onclick="doLogin()">进入</div>
+    <div class="error" id="loginError">密码错误</div>
+  </div>
 </div>
+
+<!-- 顶部 -->
 <div class="header">
-    <div class="header-inner">
-        <h1>模型切换</h1>
-        <span><span class="status" id="netStatus">检测中...</span><button class="pw-btn" onclick="showPwModal()">🔑 修改口令</button></span>
+  <div class="header-inner">
+    <h1>🤖 模型切换面板</h1>
+    <div class="header-right">
+      <span class="status" id="netStatus">检测中...</span>
+      <button class="pw-btn" onclick="logout()">退出</button>
     </div>
+  </div>
 </div>
-<div class="container">
-    <div class="section">
-        <div class="section-title">提供商状态</div>
-        <div id="providers">检测中...</div>
+
+<!-- 左右布局 -->
+<div class="layout">
+  <!-- 左侧菜单 -->
+  <div class="sidebar">
+    <!-- 当前模型 -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">当前模型</div>
+      <div class="current-model-card">
+        <div class="current-model-label">正在使用</div>
+        <div class="current-model-name" id="currentModel">加载中...</div>
+      </div>
     </div>
-    <div class="section">
-        <div class="section-title">当前模型</div>
-        <div class="current-model" id="currentModel">加载中...</div>
-        <div class="actions-inline">
-            <button class="btn btn-primary" id="btnSwitch" disabled onclick="switchModel()">切换模型</button>
-            <button class="btn btn-secondary" onclick="reloadService()">重载</button>
-            <button class="btn btn-secondary" onclick="refreshAll()">刷新</button>
-        </div>
+
+    <!-- 提供商状态 -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">提供商状态</div>
+      <div id="providers">检测中...</div>
     </div>
-    <div class="section">
-        <div class="section-title">可用模型</div>
-        <div id="modelGroups">加载中...</div>
+
+    <!-- 快捷操作 -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">操作</div>
+      <button class="btn btn-secondary btn-block" onclick="refreshAll()" style="margin-bottom:8px">🔄 刷新状态</button>
+      <button class="btn btn-secondary btn-block" onclick="reloadService()">⚙️ 重载服务</button>
     </div>
+  </div>
+
+  <!-- 右侧内容 -->
+  <div class="main">
+    <!-- 可用模型 -->
+    <div class="main-section">
+      <div class="main-title">
+        <span>可用模型</span>
+        <span style="font-size:12px;color:#86868b;font-weight:400" id="modelCount"></span>
+      </div>
+      <div id="modelGroups">加载中...</div>
+    </div>
+
+    <!-- 切换操作 -->
+    <div class="main-section">
+      <div class="main-title">切换模型</div>
+      <p style="font-size:13px;color:#86868b;margin-bottom:16px">在左侧选择一个提供商，然后在右侧选择一个模型进行切换。</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnSwitch" disabled onclick="switchModel()">切换模型</button>
+        <button class="btn btn-secondary" onclick="refreshAll()">刷新</button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- 底部 -->
 <div class="footer">
-    <span>模型面板 v1.0</span>
-    <span class="footer-sep">·</span>
-    <span id="footerTime"></span>
-    <br>
-    <span>&copy; <span id="footerYear">2026</span> 三页札记. MIT License</span>
+  <span>模型面板 v1.1</span>
+  <span class="footer-sep">·</span>
+  <span>&copy; 2026 三页札记</span>
 </div>
+
+<!-- 提示 -->
 <div class="toast" id="toast"></div>
-<div class="modal-overlay" id="pwModal">
-    <div class="modal-box">
-        <h3>修改口令</h3>
-        <input type="password" id="oldPw" placeholder="原口令">
-        <input type="password" id="newPw" placeholder="新口令（至少 4 位）">
-        <input type="password" id="confirmPw" placeholder="确认新口令">
-        <div class="modal-actions">
-            <div class="btn" style="background:#f2f2f5;color:#1d1d1f" onclick="closePwModal()">取消</div>
-            <div class="btn" style="background:#ff6b35;color:#fff" onclick="changePassword()">保存</div>
-        </div>
-    </div>
-</div>
+
 <script>
 let providers={},models={},selectedProvider=null,selectedModel=null;
-
 let authToken=localStorage.getItem('panel_token')||'';
 
 async function api(url,opts={}){
-    const headers={'Content-Type':'application/json'};
-    if(authToken)headers['X-Auth-Token']=authToken;
-    const r=await fetch(url,{headers,...opts});
-    if(r.status===401){showLogin();return {_unauth:true}}
-    return r.json();
-}
-
-async function doLogin(){
-    const pw=document.getElementById('pwInput').value;
-    document.getElementById('loginError').style.display='none';
-    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
-    const d=await r.json();
-    if(d.ok){
-        authToken=d.token;
-        localStorage.setItem('panel_token',d.token);
-        document.getElementById('loginOverlay').style.display='none';
-        refreshAll();
-    }else{
-        document.getElementById('loginError').style.display='block';
-    }
+  const headers={'Content-Type':'application/json'};
+  if(authToken)headers['X-Auth-Token']=authToken;
+  const r=await fetch(url,{headers,...opts});
+  if(r.status===401){showLogin();return {_unauth:true}}
+  return r.json();
 }
 
 function showLogin(){
-    localStorage.removeItem('panel_token');
-    document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('pwInput').focus();
+}
+function hideLogin(){
+  document.getElementById('loginOverlay').style.display='none';
 }
 
-(async function init(){
-    if(authToken){
-        const r=await fetch('/api/status',{headers:{'X-Auth-Token':authToken}});
-        if(r.ok){
-            document.getElementById('loginOverlay').style.display='none';
-            refreshAll();
-        }else{
-            showLogin();
-        }
-    }
-})();
+async function doLogin(){
+  const pw=document.getElementById('pwInput').value;
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+  const d=await r.json();
+  if(d.ok){
+    authToken=d.token;
+    localStorage.setItem('panel_token',authToken);
+    hideLogin();
+    refreshAll();
+  }else{
+    document.getElementById('loginError').style.display='block';
+  }
+}
+
+function logout(){
+  authToken='';
+  localStorage.removeItem('panel_token');
+  showLogin();
+}
+
+// 如果已有 token，验证一下
+if(authToken){
+  api('/api/status').then(d=>{
+    if(d._unauth)showLogin();
+    else hideLogin();
+  });
+}else{
+  showLogin();
+}
 
 async function refreshStatus(){
-    const data=await api('/api/status');
-    providers=data;
-    const el=document.getElementById('providers');
-    el.innerHTML=Object.entries(data).map(([id,p])=>{
-        const badge=`<span class="status-badge ${p.status}">${p.status==='ok'?'正常':p.status==='error'?'错误':p.status==='timeout'?'超时':'无Key'}</span>`;
-        const latency=p.latency_ms?p.latency_ms+'ms':'';
-        return `<div class="provider ${selectedProvider===id?'active':''}" onclick="selectProvider('${id}')">
-            <div><div class="provider-name">${p.name||id}</div><div class="provider-latency">${latency}</div></div>
-            <div class="provider-right">${badge}</div>
-        </div>`;
-    }).join('');
-    const ok=Object.values(data).filter(p=>p.status==='ok').length;
-    document.getElementById('netStatus').textContent=`${ok}/${Object.keys(data).length} 正常`;
+  const data=await api('/api/status');
+  if(data._unauth)return;
+  providers=data;
+  const el=document.getElementById('providers');
+  el.innerHTML=Object.entries(data).map(([id,p])=>{
+    const badge=`<span class="provider-badge ${p.status}">${p.status==='ok'?'正常':p.status==='error'?'错误':p.status==='timeout'?'超时':'无Key'}</span>`;
+    const active=selectedProvider===id?'active':'';
+    return `<div class="provider-item ${active}" onclick="selectProvider('${id}')">
+      <div class="provider-info">
+        <div class="provider-dot"></div>
+        <span class="provider-name">${p.name||id}</span>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+  const ok=Object.values(data).filter(p=>p.status==='ok').length;
+  document.getElementById('netStatus').textContent=`${ok}/${Object.keys(data).length} 正常`;
 }
 
 async function refreshConfig(){
-    const data=await api('/api/config');
-    document.getElementById('currentModel').textContent=data.default_model||'未设置';
+  const data=await api('/api/config');
+  if(data._unauth)return;
+  document.getElementById('currentModel').textContent=data.default_model||'未设置';
 }
 
 async function refreshModels(){
-    const data=await api('/api/models');
-    models=data;
-    const el=document.getElementById('modelGroups');
-    el.innerHTML=Object.entries(data).map(([id,m])=>{
-        const items=(m.models||[]).map(mod=>`
-            <div class="model-item ${selectedProvider===id&&selectedModel===mod.id?'selected':''}" onclick="selectModel('${id}','${mod.id}')">
-                <span class="model-item-name">${mod.name||mod.id}</span>
-                <span class="check">✓</span>
-            </div>`).join('');
-        return `<div class="model-group">
-            <div class="model-group-title collapsed" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('show')">${m.name} (${m.model_count})</div>
-            <div class="model-list">${items}</div>
-        </div>`;
-    }).join('');
+  const data=await api('/api/models');
+  if(data._unauth)return;
+  models=data;
+  const el=document.getElementById('modelGroups');
+  let totalModels=0;
+  el.innerHTML=Object.entries(data).map(([id,m]=>{
+    totalModels+=m.model_count;
+    const items=(m.models||[]).map(mod=>`
+      <div class="model-item ${selectedProvider===id&&selectedModel===mod.id?'selected':''}" onclick="selectModel('${id}','${mod.id}')">
+        <span class="model-item-name">${mod.name||mod.id}</span>
+        <span class="model-item-check">✓</span>
+      </div>`).join('');
+    return `<div class="model-provider-group">
+      <div class="model-provider-title" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('show')">
+        <span class="model-provider-name">${m.name} (${m.model_count})</span>
+        <span class="model-provider-arrow">▼</span>
+      </div>
+      <div class="model-list show">${items}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('modelCount').textContent=`共 ${totalModels} 个模型`;
 }
 
 function selectProvider(id){
-    selectedProvider=id;
-    document.querySelectorAll('.provider').forEach(el=>el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+  selectedProvider=id;
+  document.querySelectorAll('.provider-item').forEach(el=>el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
 }
 
 function selectModel(provider,modelId){
-    selectedProvider=provider;
-    selectedModel=modelId;
-    document.querySelectorAll('.model-item').forEach(el=>el.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
-    document.getElementById('btnSwitch').disabled=false;
+  selectedProvider=provider;
+  selectedModel=modelId;
+  document.querySelectorAll('.model-item').forEach(el=>el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('btnSwitch').disabled=false;
 }
 
 async function switchModel(){
-    if(!selectedProvider||!selectedModel)return;
-    document.getElementById('btnSwitch').disabled=true;
-    document.getElementById('btnSwitch').textContent='切换中...';
-    const r=await api('/api/switch',{method:'POST',body:JSON.stringify({provider:selectedProvider,model_id:selectedModel})});
-    showToast(r.ok?`${r.message}`:`错误: ${r.error}`);
-    if(r.ok){refreshConfig();refreshModels()}
-    document.getElementById('btnSwitch').disabled=false;
-    document.getElementById('btnSwitch').textContent='切换模型';
+  if(!selectedProvider||!selectedModel)return;
+  const r=await api('/api/switch',{method:'POST',body:JSON.stringify({provider:selectedProvider,model_id:selectedModel})});
+  showToast(r.ok?`✅ ${r.message}`:`❌ ${r.error}`);
+  if(r.ok){refreshConfig();refreshModels()}
 }
 
 async function reloadService(){
-    showToast('⏳ 重载中...');
-    const r=await api('/api/reload',{method:'POST'});
-    showToast(r.ok?r.message:`错误: ${r.error}`);
+  showToast('⏳ 重载中...');
+  const r=await api('/api/reload',{method:'POST'});
+  showToast(r.ok?'✅ 配置已重载':`❌ ${r.error||r.stderr}`);
 }
 
 function refreshAll(){refreshStatus();refreshConfig();refreshModels()}
 
 function showToast(msg){
-    const el=document.getElementById('toast');
-    el.textContent=msg;el.classList.add('show');
-    setTimeout(()=>el.classList.remove('show'),3000);
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
 
-function updateFooterTime(){
-    const now=new Date();
-    document.getElementById('footerTime').textContent=now.toLocaleString('zh-CN',{hour12:false});
-}
-document.getElementById('footerYear').textContent=new Date().getFullYear();
-setInterval(updateFooterTime,1000);updateFooterTime();
-
-function showPwModal(){
-    document.getElementById('pwModal').style.display='flex';
-    document.getElementById('oldPw').value='';
-    document.getElementById('newPw').value='';
-    document.getElementById('confirmPw').value='';
-}
-function closePwModal(){document.getElementById('pwModal').style.display='none'}
-async function changePassword(){
-    const old=document.getElementById('oldPw').value;
-    const p1=document.getElementById('newPw').value;
-    const p2=document.getElementById('confirmPw').value;
-    if(!old||!p1||!p2){showToast('请填写完整');return}
-    if(p1!==p2){showToast('两次密码不一致');return}
-    if(p1.length<4){showToast('新密码至少 4 位');return}
-    const r=await api('/api/change-password',{method:'POST',body:JSON.stringify({old_password:old,new_password:p1})});
-    if(r._unauth)return;
-    if(r.ok){closePwModal();showToast('✅ 密码已修改')}
-    else showToast('❌ '+(r.error||'修改失败'));
-}
-if(authToken)refreshStatus();refreshConfig();refreshModels();
+// 初始加载
+refreshAll();
 </script>
 </body>
 </html>
