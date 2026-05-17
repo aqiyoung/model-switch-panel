@@ -248,7 +248,13 @@ def load_providers():
             api_key = resolve_api_key(pconf.get("apiKey", ""))
             if not api_key or not base_url:
                 continue
-            test_url = f"{base_url}/models" if "/v1" in base_url else f"{base_url}/v1/models"
+            # 智能拼接 test_url：如果 base_url 已包含版本号（/v1/v2/v3/v4），直接加 /models
+            if any(f"/v{i}" in base_url for i in range(1, 10)):
+                test_url = f"{base_url}/models"
+            elif base_url.endswith("/models"):
+                test_url = base_url
+            else:
+                test_url = f"{base_url}/v1/models"
             result[pname] = {
                 "name": pconf.get("name") or pname,
                 "test_url": test_url,
@@ -264,7 +270,12 @@ def load_providers():
                 if not base_override:
                     continue
             actual_base = os.environ.get(f"{env_var.replace('_API_KEY', '_BASE_URL')}", base_url).rstrip("/")
-            test_url = actual_base + test_path if test_path else f"{actual_base}/models"
+            if test_path:
+                test_url = actual_base + test_path
+            elif any(f"/v{i}" in actual_base for i in range(1, 10)):
+                test_url = f"{actual_base}/models"
+            else:
+                test_url = f"{actual_base}/v1/models"
             result[pid] = {
                 "name": pname,
                 "test_url": test_url,
