@@ -114,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="footer-sep">·</span>
     <span id="footerTime"></span>
     <br>
-    <span>&copy; 2026 三页札记. MIT License</span>
+    <span>&copy; <span id="footerYear">2026</span> 三页札记. MIT License</span>
 </div>
 <div class="toast" id="toast"></div>
 <div class="modal-overlay" id="pwModal">
@@ -255,6 +255,7 @@ function updateFooterTime(){
     const now=new Date();
     document.getElementById('footerTime').textContent=now.toLocaleString('zh-CN',{hour12:false});
 }
+document.getElementById('footerYear').textContent=new Date().getFullYear();
 setInterval(updateFooterTime,1000);updateFooterTime();
 
 function showPwModal(){
