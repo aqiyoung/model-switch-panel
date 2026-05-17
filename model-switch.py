@@ -137,10 +137,12 @@ def write_json(path, data):
 def deep_get(obj, path):
     for key in path.split("."):
         if isinstance(obj, dict):
-            obj = obj.get(key, {})
+            obj = obj.get(key)
+            if obj is None:
+                return {}
         else:
             return {}
-    return obj if isinstance(obj, dict) else {}
+    return obj if obj is not None else {}
 
 def deep_set(obj, path, value):
     parts = path.split(".")
